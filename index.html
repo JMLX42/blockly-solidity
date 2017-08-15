@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Blockly Demo: Fixed Blockly</title>
+  <script src="../blockly/blockly_uncompressed.js"></script>
+  <script src="../blockly/blocks/variables.js"></script>
+  <script src="../blockly/blocks/math.js"></script>
+  <script src="../blockly/blocks/logic.js"></script>
+  <script src="../blockly/msg/js/en.js"></script>
+
+  <script src="./blocks/contract.js"></script>
+  <script src="./generators/solidity.js"></script>
+  <script src="./generators/solidity/contract.js"></script>
+  <script src="./generators/solidity/logic.js"></script>
+  <script src="./generators/solidity/math.js"></script>
+  <style>
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+    h1 {
+      font-weight: normal;
+      font-size: 140%;
+    }
+  </style>
+</head>
+<body>
+  <div id="blocklyDiv" style="height: 480px; width: 100%;"></div>
+
+  <xml id="toolbox" style="display: none">
+    <block type="contract_state"></block>
+    <block type="contract_state_get"></block>
+    <block type="contract_state_set"></block>
+    <block type="math_number"></block>
+    <block type="logic_boolean"></block>
+    <block type="logic_compare"></block>
+    <block type="controls_ifelse"></block>
+    <block type="controls_if"></block>
+    <block type="contract_method"></block>
+    <block type="contract_method_parameter"></block>
+    <block type="contract_method_parameter_get"></block>
+    <block type="contract_ctor"></block>
+    <block type="math_arithmetic"></block>
+  </xml>
+
+  <textarea id="textarea" style="width:100%;height:300px"></textarea>
+
+  <script>
+    var workspace = Blockly.inject(
+      'blocklyDiv',
+      {
+        media: './media/',
+        toolbox: document.getElementById('toolbox')
+      }
+    );
+    Blockly.Xml.domToWorkspace(
+      Blockly.Xml.textToDom(
+        '<xml><block type="contract" deletable="false" movable="false"></block></xml>'
+      ),
+      workspace
+    );
+    var contractBlock = workspace.getTopBlocks()[0];
+    function myUpdateFunction(event) {
+      var code = Blockly.Solidity.blockToCode(contractBlock);
+      document.getElementById('textarea').value = code;
+     }
+     workspace.addChangeListener(myUpdateFunction);
+  </script>
+
+</body>
+</html>
