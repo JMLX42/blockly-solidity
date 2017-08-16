@@ -2,6 +2,82 @@
 
 goog.provide('Blockly.Solidity.contract');
 
+Blockly.Extensions.register(
+  'declare_typed_variable',
+  function() {
+    var block = this;
+
+    this.declareVariable = function(name, force = false) {
+      var oldName = block.getFieldValue('NAME');
+
+      if (!force && (!block.getParent() || oldName == name)) {
+        return oldName;
+      }
+
+      var type = block.getFieldValue('TYPE');
+      var prefix = this.getVariablePrefix(block);
+      var variable = block.workspace.getVariableById(block.id);
+
+      if (!block.workspace.getVariable(prefix + name)) {
+        newName = name;
+      } else {
+        var count = 1;
+        var newName = name + count;
+        while (block.workspace.getVariable(prefix + newName)) {
+          count++;
+          newName = name + count;
+        }
+      }
+
+      if (!variable) {
+        block.workspace.createVariable(prefix + newName, type, block.id);
+      } else {
+        variable.name = prefix + newName;
+      }
+
+      if (force) {
+        block.getField('NAME').setText(newName);
+      }
+
+      Blockly.Solidity.updateWorkspaceParameterNameFields(block.workspace);
+
+      return newName;
+    };
+
+    this.getVariableNameField().setValidator(function(name) {
+      return block.declareVariable(name);
+    });
+
+    var onchange = null;
+    if (goog.isFunction(this.onchange)) {
+      onchange = this.onchange;
+    }
+
+    this.setOnChange(function(event) {
+      Blockly.Solidity.updateWorkspaceStateNameFields(this.workspace);
+      Blockly.Solidity.updateWorkspaceStateTypes(this.workspace);
+      Blockly.Solidity.updateWorkspaceParameterNameFields(this.workspace);
+      Blockly.Solidity.updateWorkspaceParameterTypes(this.workspace);
+
+      if (event.type == "move" && !!event.newParentId) {
+        if (!this.workspace.getVariableById(this.id)) {
+          this.declareVariable(this.getFieldValue('NAME'), true);
+        }
+      }
+      if (event.element == "field" && event.name == "TYPE") {
+        var variable = this.workspace.getVariableById(this.id);
+
+        variable.type = this.getFieldValue('TYPE');
+        Blockly.Solidity.updateWorkspaceStateTypes(this.workspace);
+      }
+
+      if (!!onchange) {
+        onchange.call(block, event);
+      }
+    });
+  }
+);
+
 Blockly.defineBlocksWithJsonArray([
   {
     "type": "contract",
@@ -48,7 +124,7 @@ Blockly.defineBlocksWithJsonArray([
 
 Blockly.Blocks['contract_state'] = {
   init: function() {
-    var nameField = new Blockly.FieldTextInput('a', this.validateName);
+    var nameField = new Blockly.FieldTextInput('a');
     this.appendDummyInput()
         .appendField('let')
         .appendField(new Blockly.FieldDropdown([
@@ -66,64 +142,11 @@ Blockly.Blocks['contract_state'] = {
 
     this._stateNameInitialized = false;
 
-    this.setOnChange(function(event) {
-      Blockly.Solidity.updateWorkspaceStateNameFields(this.workspace);
-      Blockly.Solidity.updateWorkspaceStateTypes(this.workspace);
+    this.getVariablePrefix = Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC;
+    this.getVariableNameField = function() { return nameField; }
 
-      if (event.blockId != this.id) {
-        return;
-      }
-
-      if (event.type == "create") {
-        // nothing
-      }
-      if (event.element == "field" && event.name == "NAME") {
-        // name changed, do nothing
-      }
-      if (event.element == "field" && event.name == "TYPE") {
-        var variable = this.workspace.getVariableById(this.id);
-
-        variable.type = this.getFieldValue('TYPE');
-        Blockly.Solidity.updateWorkspaceStateTypes(this.workspace);
-      }
-    });
+    Blockly.Extensions.apply('declare_typed_variable', this, false);
   },
-
-  validateName: function(name) {
-    var block = this.sourceBlock_;
-    var oldName = block.getFieldValue('NAME');
-
-    if (oldName == name && this._stateNameInitialized) {
-      return;
-    }
-
-    this._stateNameInitialized = true;
-
-    var type = block.getFieldValue('TYPE');
-    var prefix = Blockly.Solidity.STATE_VAR_NAME_PREFIX_FUNC(block);
-    var variable = block.workspace.getVariableById(block.id);
-
-    if (!block.workspace.getVariable(prefix + name)) {
-      newName = name;
-    } else {
-      var count = 1;
-      var newName = name + count;
-      while (block.workspace.getVariable(prefix + newName)) {
-        count++;
-        newName = name + count;
-      }
-    }
-
-    if (!variable) {
-      block.workspace.createVariable(prefix + newName, type, block.id);
-    } else {
-      variable.name = prefix + newName;
-    }
-
-    Blockly.Solidity.updateWorkspaceStateNameFields(block.workspace);
-
-    return newName;
-  }
 };
 
 Blockly.Blocks['contract_state_get'] = {
@@ -170,7 +193,7 @@ Blockly.Blocks['contract_state_set'] = {
 
 Blockly.Blocks['contract_method_parameter'] = {
   init: function() {
-    var nameField = new Blockly.FieldTextInput('a', this.validateName);
+    var nameField = new Blockly.FieldTextInput('a');
     this.appendDummyInput()
         .appendField('let')
         .appendField(new Blockly.FieldDropdown([
@@ -186,73 +209,11 @@ Blockly.Blocks['contract_method_parameter'] = {
     this.setColour(320);
     this.contextMenu = false;
 
-    this.setOnChange(function(event) {
-      Blockly.Solidity.updateWorkspaceParameterNameFields(this.workspace);
-      Blockly.Solidity.updateWorkspaceParameterTypes(this.workspace);
+    this.getVariablePrefix = Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC;
+    this.getVariableNameField = function() { return nameField };
 
-      if (event.blockId != this.id) {
-        return;
-      }
-
-      if (event.type == "create") {
-        // nothing
-      }
-      if (event.element == "field" && event.name == "NAME") {
-        // name changed, do nothing
-      }
-      if (event.type == "move" && !!event.newParentId) {
-        this.declareVariable(this.getFieldValue('NAME'), true);
-      }
-      if (event.element == "field" && event.name == "TYPE") {
-        var variable = this.workspace.getVariableById(this.id);
-
-        variable.type = this.getFieldValue('TYPE');
-        Blockly.Solidity.updateWorkspaceParameterTypes(this.workspace);
-      }
-    });
+    Blockly.Extensions.apply('declare_typed_variable', this, false);
   },
-
-  declareVariable: function(name, force = false) {
-    var block = this;
-    var oldName = block.getFieldValue('NAME');
-
-    if (!force && (!block.getParent() || oldName == name)) {
-      return oldName;
-    }
-
-    var type = block.getFieldValue('TYPE');
-    var prefix = Blockly.Solidity.PARAM_VAR_NAME_PREFIX_FUNC(block);
-    var variable = block.workspace.getVariableById(block.id);
-
-    if (!block.workspace.getVariable(prefix + name)) {
-      newName = name;
-    } else {
-      var count = 1;
-      var newName = name + count;
-      while (block.workspace.getVariable(prefix + newName)) {
-        count++;
-        newName = name + count;
-      }
-    }
-
-    if (!variable) {
-      block.workspace.createVariable(prefix + newName, type, block.id);
-    } else {
-      variable.name = prefix + newName;
-    }
-
-    if (force) {
-      block.getField('NAME').setText(newName);
-    }
-
-    Blockly.Solidity.updateWorkspaceParameterNameFields(block.workspace);
-
-    return newName;
-  },
-
-  validateName: function(name) {
-    return this.sourceBlock_.declareVariable(name);
-  }
 };
 
 Blockly.Blocks['contract_method_parameter_get'] = {

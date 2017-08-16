@@ -86,7 +86,7 @@ Blockly.Solidity['contract_state_get'] = function(block) {
     return '';
   }
 
-  var variableName = variable.name.replace(Blockly.Solidity.STATE_VAR_NAME_PREFIX_FUNC(block), '');
+  var variableName = variable.name.replace(Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC(block), '');
 
   return ['this.' + variableName, Blockly.Solidity.ORDER_ATOMIC];
 };
@@ -102,7 +102,7 @@ Blockly.Solidity['contract_state_set'] = function(block) {
     return '';
   }
 
-  var variableName = variable.name.replace(Blockly.Solidity.STATE_VAR_NAME_PREFIX_FUNC(block), '');
+  var variableName = variable.name.replace(Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC(block), '');
 
   return 'this.' + variableName + ' = ' + argument0 + ';\n';
 };
@@ -115,7 +115,7 @@ Blockly.Solidity['contract_method_parameter_get'] = function(block) {
     return '';
   }
 
-  var variableName = variable.name.replace(Blockly.Solidity.PARAM_VAR_NAME_PREFIX_FUNC(block), '');
+  var variableName = variable.name.replace(Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC(block), '');
 
   return [variableName, Blockly.Solidity.ORDER_ATOMIC];
 };

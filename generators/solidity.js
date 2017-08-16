@@ -15,15 +15,14 @@ goog.require('Blockly.Generator');
  */
 Blockly.Solidity = new Blockly.Generator('Solidity');
 
-Blockly.Solidity.STATE_VAR_NAME_PREFIX_FUNC = function(block) { return "__state_"; }
-Blockly.Solidity.PARAM_VAR_NAME_PREFIX_FUNC = function(block) {
+Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC = function(block) { return "__contract_"; }
+Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC = function(block) {
   var methodBlock = block;
   while (methodBlock && methodBlock.type != "contract_method" && methodBlock.type != "contract_ctor") {
     methodBlock = methodBlock.getParent();
   }
-  return "__param_function(" + (!!methodBlock ? methodBlock.id : block.id) + ")_"
+  return "__method(" + (!!methodBlock ? methodBlock.id : block.id) + ")_"
 };
-Blockly.Solidity.VAR_VAR_NAME_PREFIX_FUNC = function(block) { return "__var_" };
 
 Blockly.Solidity.UNDEFINED_STATE_NAME = "__UNDEFINED__";
 Blockly.Solidity.UNDEFINED_PARAM_NAME = "__UNDEFINED__";
@@ -369,7 +368,7 @@ Blockly.Solidity.updateWorkspaceStateNameFields = function(workspace) {
   Blockly.Solidity.updateWorkspaceNameFields(
     workspace,
     'STATE_NAME',
-    Blockly.Solidity.STATE_VAR_NAME_PREFIX_FUNC,
+    Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC,
     Blockly.Solidity.UNDEFINED_STATE_NAME
   );
 }
@@ -386,7 +385,7 @@ Blockly.Solidity.updateWorkspaceParameterNameFields = function(workspace) {
   Blockly.Solidity.updateWorkspaceNameFields(
     workspace,
     'PARAM_NAME',
-    Blockly.Solidity.PARAM_VAR_NAME_PREFIX_FUNC,
+    Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC,
     Blockly.Solidity.UNDEFINED_PARAM_NAME
   );
 }
