@@ -43,41 +43,6 @@ Blockly.Solidity['contract_state'] = function(block) {
   return types[type] + ' ' + name + ' = ' + value + ';\n';
 };
 
-Blockly.Solidity['contract_method'] = function(block) {
-  var params = Blockly.Solidity.statementToCode(block, 'PARAMS').trim();
-  var branch = Blockly.Solidity.statementToCode(block, 'STACK');
-  var code = 'function ' + block.getFieldValue('NAME') + '(' + params + ') {\n' + branch + '}\n';
-
-  return code;
-};
-
-Blockly.Solidity['contract_ctor'] = function(block) {
-  var parent = block.getSurroundParent();
-
-  if (!parent) {
-    return '';
-  }
-
-  var params = Blockly.Solidity.statementToCode(block, 'PARAMS').trim();
-  var branch = Blockly.Solidity.statementToCode(block, 'STACK');
-  var code = 'function ' + parent.getFieldValue('NAME') + '(' + params + ') {\n' + branch + '}\n';
-
-  return code;
-};
-
-Blockly.Solidity['contract_method_parameter'] = function(block) {
-  var name = block.getFieldValue('NAME');
-  var nextBlock = block.getNextBlock();
-  var sep = nextBlock && nextBlock.type == block.type ? ', ' : '';
-  var types = {
-    'TYPE_BOOL': 'bool',
-    'TYPE_INT': 'int',
-    'TYPE_UINT': 'uint',
-  };
-
-  return types[block.getFieldValue('TYPE')] + ' ' + name + sep;
-};
-
 Blockly.Solidity['contract_state_get'] = function(block) {
   var variableId = block.getFieldValue('STATE_NAME');
   var variable = block.workspace.getVariableById(variableId);
@@ -86,9 +51,7 @@ Blockly.Solidity['contract_state_get'] = function(block) {
     return '';
   }
 
-  var variableName = variable.name.replace(Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC(block), '');
-
-  return ['this.' + variableName, Blockly.Solidity.ORDER_ATOMIC];
+  return ['this.' + Blockly.Solidity.getVariableName(variable), Blockly.Solidity.ORDER_ATOMIC];
 };
 
 Blockly.Solidity['contract_state_set'] = function(block) {
@@ -102,20 +65,5 @@ Blockly.Solidity['contract_state_set'] = function(block) {
     return '';
   }
 
-  var variableName = variable.name.replace(Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC(block), '');
-
-  return 'this.' + variableName + ' = ' + argument0 + ';\n';
-};
-
-Blockly.Solidity['contract_method_parameter_get'] = function(block) {
-  var variableId = block.getFieldValue('PARAM_NAME');
-  var variable = block.workspace.getVariableById(variableId);
-
-  if (!variable) {
-    return '';
-  }
-
-  var variableName = variable.name.replace(Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC(block), '');
-
-  return [variableName, Blockly.Solidity.ORDER_ATOMIC];
+  return 'this.' + Blockly.Solidity.getVariableName(variable) + ' = ' + argument0 + ';\n';
 };

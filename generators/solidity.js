@@ -15,18 +15,11 @@ goog.require('Blockly.Generator');
  */
 Blockly.Solidity = new Blockly.Generator('Solidity');
 
-Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC = function(block) { return "__contract_"; }
-Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC = function(block) {
-  var methodBlock = block;
-  while (methodBlock && methodBlock.type != "contract_method" && methodBlock.type != "contract_ctor") {
-    methodBlock = methodBlock.getParent();
-  }
-  return "__method(" + (!!methodBlock ? methodBlock.id : block.id) + ")_"
-};
-
-Blockly.Solidity.UNDEFINED_STATE_NAME = "__UNDEFINED__";
-Blockly.Solidity.UNDEFINED_PARAM_NAME = "__UNDEFINED__";
-Blockly.Solidity.UNDEFINED_VAR_NAME = "__UNDEFINED__";
+Blockly.Solidity.LABEL_GROUP_STATE      = "state";
+Blockly.Solidity.LABEL_GROUP_PARAMETER  = "parameter";
+Blockly.Solidity.LABEL_GROUP_VARIABLE   = "variable";
+Blockly.Solidity.LABEL_GROUP_METHOD     = "method";
+Blockly.Solidity.UNDEFINED_NAME         = "__UNDEFINED__";
 
 /**
  * List of illegal variable names.
@@ -291,26 +284,27 @@ Blockly.Solidity.getAdjusted = function(block, atId, opt_delta, opt_negate,
   return at;
 };
 
-Blockly.Solidity.updateWorkspaceNameFields = function(workspace, nameFieldName, prefixFunc, undefinedName) {
+Blockly.Solidity.updateWorkspaceNameFields = function(workspace) {
   var blocks = workspace.getAllBlocks();
   for (var i = 0; i < blocks.length; ++i) {
-    var nameField = blocks[i].getField(nameFieldName);
-    if (!!nameField) {
-      var prefix = prefixFunc(blocks[i]);
+    var nameField = blocks[i].getVariableNameSelectField
+      ? blocks[i].getVariableNameSelectField()
+      : null;
+    var group = blocks[i].getVariableLabelGroup
+      ? blocks[i].getVariableLabelGroup()
+      : null;
 
-      var vars = workspace.getAllVariables();
+    if (!!nameField && !!group) {
+      var vars = Blockly.Solidity.getVariablesInScope(blocks[i], group);
       var options = vars.map(function(v) {
-          return v.name.startsWith(prefix)
-            ? [v.name.replace(prefix, ''), v.id_]
-            : null;
-        })
-        .filter(function(o) { return o !== null });
+          return [Blockly.Solidity.getVariableName(v), v.id_];
+        });
 
-      var selectedOption = blocks[i].getFieldValue(nameFieldName);
+      var selectedOption = nameField.getValue();
 
       if (options.length != 0) {
         var wasUndefined = nameField.menuGenerator_[0][1]
-          == undefinedName;
+          == Blockly.Solidity.UNDEFINED_NAME;
 
         nameField.menuGenerator_ = options;
         if (wasUndefined) {
@@ -326,7 +320,7 @@ Blockly.Solidity.updateWorkspaceNameFields = function(workspace, nameFieldName, 
       }
     }
   }
-}
+};
 
 Blockly.Solidity.updateWorkspaceTypes = function(workspace, nameFieldName, valueFieldName) {
   var blocks = workspace.getAllBlocks();
@@ -362,38 +356,87 @@ Blockly.Solidity.updateWorkspaceTypes = function(workspace, nameFieldName, value
     }
     // FIXME: update the output type
   }
-}
-
-Blockly.Solidity.updateWorkspaceStateNameFields = function(workspace) {
-  Blockly.Solidity.updateWorkspaceNameFields(
-    workspace,
-    'STATE_NAME',
-    Blockly.Solidity.CONTRACT_SCOPE_PREFIX_FUNC,
-    Blockly.Solidity.UNDEFINED_STATE_NAME
-  );
-}
+};
 
 Blockly.Solidity.updateWorkspaceStateTypes = function(workspace) {
   Blockly.Solidity.updateWorkspaceTypes(
     workspace,
-    "STATE_NAME",
-    "STATE_VALUE"
+    'STATE_NAME',
+    'STATE_VALUE'
   );
-}
-
-Blockly.Solidity.updateWorkspaceParameterNameFields = function(workspace) {
-  Blockly.Solidity.updateWorkspaceNameFields(
-    workspace,
-    'PARAM_NAME',
-    Blockly.Solidity.METHOD_SCOPE_PREFIX_FUNC,
-    Blockly.Solidity.UNDEFINED_PARAM_NAME
-  );
-}
+};
 
 Blockly.Solidity.updateWorkspaceParameterTypes = function(workspace) {
   Blockly.Solidity.updateWorkspaceTypes(
     workspace,
-    "PARAM_NAME",
-    "PARAM_VALUE"
+    'PARAM_NAME',
+    'PARAM_VALUE'
+  );
+};
+
+Blockly.Solidity.createVariable = function(workspace, group, type, name, scope, id) {
+  var variable = workspace.createVariable(name, type, id);
+
+  variable.group = group;
+  variable.scope = scope;
+
+  Blockly.Solidity.setVariableName(variable, name);
+
+  return variable;
+};
+
+Blockly.Solidity.getVariableById = function(workspace, id) {
+  return workspace.getVariableById(id);
+};
+
+Blockly.Solidity.getVariableByName = function(workspace, name) {
+  return Blockly.Solidity.getAllVariables(workspace)
+    .filter(function(v) { return Blockly.Solidity.getVariableName(v) == name; })
+    [0];
+};
+
+Blockly.Solidity.getVariableByNameAndScope = function(name, scope, group = null) {
+  return Blockly.Solidity.getVariablesInScope(scope, group)
+    .filter(function(v) { return Blockly.Solidity.getVariableName(v) == name; })
+    [0];
+};
+
+Blockly.Solidity.deleteVariableById = function(workspace, id) {
+  Blockly.Solidity.deleteVariableByName(
+    workspace,
+    Blockly.Solidity.getVariableById(workspace, id).name
   );
 }
+
+Blockly.Solidity.deleteVariableByName = function(workspace, name) {
+  return workspace.deleteVariable(name);
+};
+
+Blockly.Solidity.variableIsInScope = function(variable, scope) {
+  while (!!scope && scope.id != variable.scope.id) {
+    var type = scope.type;
+    do {
+      scope = scope.getParent();
+    } while (scope && type == scope.type)
+  }
+
+  return !!scope;
+};
+
+Blockly.Solidity.setVariableName = function(variable, name) {
+  variable.name = '_scope("' + variable.scope.id + '")_' + name;
+}
+
+Blockly.Solidity.getVariableName = function(variable) {
+  return variable.name.replace('_scope("' + variable.scope.id + '")_', '');
+}
+
+Blockly.Solidity.getAllVariables = function(workspace) {
+  return workspace.getAllVariables();
+};
+
+Blockly.Solidity.getVariablesInScope = function(block, group = null) {
+  return Blockly.Solidity.getAllVariables(block.workspace)
+    .filter(function(v) { return Blockly.Solidity.variableIsInScope(v, block); })
+    .filter(function(v) { return !group || v.group == group });
+};

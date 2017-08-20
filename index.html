@@ -13,6 +13,7 @@
   <script src="./blocks/contract.js"></script>
   <script src="./generators/solidity.js"></script>
   <script src="./generators/solidity/contract.js"></script>
+  <script src="./generators/solidity/methods.js"></script>
   <script src="./generators/solidity/logic.js"></script>
   <script src="./generators/solidity/math.js"></script>
   <style>
@@ -33,7 +34,13 @@
     <block type="contract_state"></block>
     <block type="contract_state_get"></block>
     <block type="contract_state_set"></block>
+    <block type="contract_method"></block>
+    <block type="contract_method_parameter"></block>
+    <block type="contract_method_parameter_get"></block>
+    <block type="contract_ctor"></block>
+    <block type="contract_method_call"></block>
     <block type="math_number"></block>
+    <block type="math_arithmetic"></block>
     <block type="logic_boolean"></block>
     <block type="logic_compare"></block>
     <block type="controls_ifelse"></block>
@@ -41,18 +48,18 @@
     <block type="contract_method"></block>
     <block type="contract_method_parameter"></block>
     <block type="contract_method_parameter_get"></block>
-    <block type="contract_ctor"></block>
+    <block type="logic_operation"></block>
     <block type="math_arithmetic"></block>
   </xml>
 
-  <textarea id="textarea" style="width:100%;height:300px"></textarea>
+  <textarea id="textarea" style="width:calc(34% - 10px);height:600px;float:right"></textarea>
 
   <script>
     var workspace = Blockly.inject(
       'blocklyDiv',
       {
-        media: './media/',
-        toolbox: document.getElementById('toolbox')
+        media: '../blockly/media/',
+        toolbox: document.getElementById('toolbox'),
       }
     );
     Blockly.Xml.domToWorkspace(
