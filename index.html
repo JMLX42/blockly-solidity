@@ -60,6 +60,16 @@
       {
         media: '../blockly/media/',
         toolbox: document.getElementById('toolbox'),
+        scrollbars: true,
+        zoom: {
+          controls: true
+        },
+        grid: {
+          spacing: 25,
+          length: 3,
+          colour: '#ccc',
+          snap: true
+        },
       }
     );
     Blockly.Xml.domToWorkspace(
@@ -69,8 +79,35 @@
       workspace
     );
     var contractBlock = workspace.getTopBlocks()[0];
+
+    function setDisabledRec(block, disabled) {
+      block.setDisabled(disabled);
+      block.setMovable(true);
+
+      var children = block.getChildren();
+      for (var i = 0; i < children.length; i++) {
+        setDisabledRec(children[i], disabled);
+      }
+    }
+
     function myUpdateFunction(event) {
       var code = Blockly.Solidity.blockToCode(contractBlock);
+      var topBlocks = workspace.getAllBlocks();
+
+      for (var i = 0; i < topBlocks.length; ++i) {
+        var block = topBlocks[i];
+
+        if (contractBlock == block) {
+          continue;
+        }
+
+        if (!block.getParent()) {
+          setDisabledRec(block, true);
+        } else if (block.getParent() == contractBlock) {
+          setDisabledRec(block, false);
+        }
+      }
+
       document.getElementById('textarea').value = code;
      }
      workspace.addChangeListener(myUpdateFunction);
