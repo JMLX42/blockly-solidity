@@ -1,7 +1,7 @@
 # Solidity for Blockly
 
 ## About
-
+ 
 This projects goal is to add support for the [Solidity](https://solidity.readthedocs.io) language (the main language
 used to create smart contracts for the [Ethereum](https://www.ethereum.org/) blockchain) in the
 [Blockly](https://developers.google.com/blockly/) visual programming tool.
@@ -20,13 +20,59 @@ Thus, the need to make it easier to create, distribute and run smart contracts w
 possible. Blockly being an initiative to introduce programming to children, it felt like the right way to start
 experimenting.
 
-## Install
+## Use with NPM
+Blockly Solidity adds its generator in the Blockly.Solidity namespace, and its blocks in Blockly.Blocks.
+* ```
+  npm install --save blockly blockly-solidity
+  ```
+* ES6 (React, Meteor, Vue, Angular)
+  ```
+  // Blockly
+  import * as Blockly from 'blockly/core'
+  import 'blockly/blocks'
 
-* `mkdir www && cd www`
-* `git clone https://github.com/google/blockly.git`
-* `git clone https://github.com/promethe42/blockly-solidity.git`
-* `python -m SimpleHTTPServer`
+  // Solidity generator and blocks.
+  import 'blockly-solidity'
 
+  // Or separately.
+  import 'blockly-solidity/solidity'  
+  import 'blockly-solidity/blocks'
+  ```
+* CommonJS (Node)
+  ```
+  // Blockly
+  var Blockly = require('blockly/core')
+  require('blockly/blocks')
+
+  // Solidity generator and blocks.
+  require('blockly-solidity')
+
+  // Or separately.
+  require('blockly-solidity/solidity')
+  require('blockly-solidity/blocks')
+  ```
+* Unpkg (Browser)
+  ```
+  <!-- Blockly -->
+  <script src="//unpkg.com/blockly/core.js"></script>
+  <script src="//unpkg.com/blockly/blocks.js"></script>
+
+  <!-- Solidity generator and blocks. -->
+  <script src="//unpkg.com/blockly-solidity"></script>
+
+  <!-- Separately. -->
+  <script src="//unpkg.com/blockly-solidity/solidity.js"></script>
+  <script src="//unpkg.com/blockly-solidity/blocks.js"></script>
+  ```
+
+## Development
+
+```
+mkdir www && cd www
+git clone https://github.com/google/blockly.git
+git clone https://github.com/promethe42/blockly-solidity.git
+python -m SimpleHTTPServer
+```
 Then open http://localhost in your favorite web browser.
 
 ## Features
