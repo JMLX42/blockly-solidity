@@ -191,7 +191,6 @@ Blockly.Solidity.scrub_ = function(block, code) {
   if (!block.outputConnection || !block.outputConnection.targetConnection) {
     // Collect comment for this block.
     var comment = block.getCommentText();
-    comment = Blockly.utils.wrap(comment, Blockly.Solidity.COMMENT_WRAP - 3);
     if (comment) {
       if (block.getProcedureDef) {
         // Use a comment block for function comments.
@@ -395,7 +394,8 @@ Blockly.Solidity.getVariableByName = function(workspace, name) {
     [0];
 };
 
-Blockly.Solidity.getVariableByNameAndScope = function(name, scope, group = null) {
+Blockly.Solidity.getVariableByNameAndScope = function(name, scope, group) {
+  group = (typeof group !== 'undefined') ?  group : null;
   return Blockly.Solidity.getVariablesInScope(scope, group)
     .filter(function(v) { return Blockly.Solidity.getVariableName(v) == name; })
     [0];
@@ -435,7 +435,8 @@ Blockly.Solidity.getAllVariables = function(workspace) {
   return workspace.getAllVariables();
 };
 
-Blockly.Solidity.getVariablesInScope = function(block, group = null) {
+Blockly.Solidity.getVariablesInScope = function(block, group) {
+  group = (typeof group !== 'undefined') ?  group : null;
   return Blockly.Solidity.getAllVariables(block.workspace)
     .filter(function(v) { return Blockly.Solidity.variableIsInScope(v, block); })
     .filter(function(v) { return !group || v.group == group });

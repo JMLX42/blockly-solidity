@@ -1,0 +1,35 @@
+{
+  "name": "blockly-solidity",
+  "version": "1.0.0",
+  "description": "Solidity language generator for Google Blockly graphical language.",
+  "scripts": {
+    "package": "gulp package",
+    "release": "gulp release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/promethe42/blockly-solidity.git"
+  },
+  "keywords": [
+    "npm",
+    "blockly",
+    "solidity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "umd": "./index.js",
+  "unpkg": "./index.js",
+  "devDependencies": {
+    "fs": "0.0.1-security",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-insert": "^0.5.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-uglify": "^3.0.2",
+    "gulp-umd": "^2.0.0",
+    "rimraf": "^3.0.0"
+  },
+  "dependencies": {},
+  "main": "./index.js"
+}

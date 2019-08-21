@@ -23,7 +23,8 @@ Blockly.Extensions.register(
       throw 'missing getVariableScope method';
     }
 
-    this.declareOrUpdateVariable = function(name, force = false) {
+    this.declareOrUpdateVariable = function(name, force) {
+      force = (typeof force !== 'undefined') ?  force : false;
       var oldName = this.getVariableNameField().getValue();
 
       if (!this.getParent()) {
